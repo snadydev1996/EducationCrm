@@ -3,7 +3,6 @@ import validator from "validator";
 import { getIndianStates } from "../Utils/apifeatures.js";
 
 const { Schema } = mongoose;
-
 const AssociateSchema = new Schema({
     Associate_Name: {
             type: String,
@@ -14,6 +13,7 @@ const AssociateSchema = new Schema({
     
     Associate_Id: {
         type: String,
+        unique:true,
         required: [true, "Please Enter Associate Id"],
         maxLength: [30, "Name cannot exceed 30 characters"],
         minLength: [4, "Name should have more than 4 characters"],

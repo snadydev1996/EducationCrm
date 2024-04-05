@@ -7,6 +7,7 @@ import { pagination } from "../Utils/apifeatures.js";
  
 //  Associate create logic start here
 const createAssociate = catchAsyncErrors(async (req, res, next) => {
+  let public_id;
   try {
      // Check if user with the same email or associate ID already exists
     const existingUser = await AssociateModel.findOne({ 
