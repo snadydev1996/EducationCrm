@@ -174,7 +174,6 @@ const deleteAssociate = catchAsyncErrors(async (req, res, next) => {
       new ErrorHandler(`associate does not exist with Id: ${req.params.id}`, 400)
     );
   }
-
   const public_id = Associate.Associate_Avatar.public_id;
   const myCloud = await cloudinary.v2.uploader.destroy(public_id);
 
