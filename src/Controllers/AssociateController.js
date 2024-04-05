@@ -4,21 +4,32 @@ import catchAsyncErrors from "../Middleware/catchAsyncErrors.js";
 import { ErrorHandler } from "../Utils/errorhandler.js"
 import{deleteFileFromCloudinary} from "../Utils/apifeatures.js"
 import { pagination } from "../Utils/apifeatures.js";
-
+ 
+//  Associate create logic start here
 const createAssociate = catchAsyncErrors(async (req, res, next) => {
-  let public_id
   try {
+     // Check if user with the same email or associate ID already exists
+    const existingUser = await AssociateModel.findOne({ 
+      $or: [
+        { Email_Id: req.body.Email_Id },
+        { Associate_Id: req.body.Associate_Id }
+      ]
+     });
+    if (existingUser ) {
+      return next(new ErrorHandler(`User with the same email or Associate_id already exists`, 400));
+    } 
+
     if (!req.files || !req.files.Associate_Avatar) {
       return next(new ErrorHandler(`Please select a profile image`, 400));
     }
-    
+
     const avatar = req.files.Associate_Avatar;
     const myCloud = await cloudinary.v2.uploader.upload(avatar.tempFilePath, {
       folder: "Associate_Avatar",
       resource_type: "auto",
     });
-public_id=myCloud.public_id
-  
+    public_id = myCloud.public_id;
+
     const {
       Associate_Name,
       Associate_Id,
@@ -35,7 +46,7 @@ public_id=myCloud.public_id
       Bank_details,
       Status,
     } = req.body;
-    
+
     const associate = await AssociateModel.create({
       Associate_Name,
       Associate_Id,
@@ -62,11 +73,14 @@ public_id=myCloud.public_id
       message: "Associate created successfully.",
     });
   } catch (error) {
-    next(error); 
-    await deleteFileFromCloudinary(public_id);
+    // Handle error
+    next(error);
+    // If there's an error, delete the uploaded file from Cloudinary
+    if (public_id ) {
+      await deleteFileFromCloudinary(public_id);
+    }
   }
 });
-
 const getAssociate = catchAsyncErrors(async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -92,9 +106,7 @@ const updateAssociate = catchAsyncErrors(async (req, res, next) => {
   if (!req.files || !req.files.Associate_Avatar) {
     return next(new ErrorHandler(`please select a associate_avatar`, 400));
   }
-  
   const Associate_Avatar = req.files.Associate_Avatar;
-  
   const { 
     Associate_Name,
     Associate_Id,
@@ -113,13 +125,11 @@ const updateAssociate = catchAsyncErrors(async (req, res, next) => {
   const latestAssociate = await AssociateModel.findById(req.params.id);
 
   const oldAvatar = latestAssociate.Associate_Avatar.public_id;
-
   const myCloud = await cloudinary.v2.uploader.upload(Associate_Avatar.tempFilePath,{
     public_id: oldAvatar,
     overwrite: true,
     invalidate: true,
   });
-
   const new_Avatar = {
     Associate_Name,
     Associate_Id,
@@ -140,7 +150,6 @@ const updateAssociate = catchAsyncErrors(async (req, res, next) => {
       url: myCloud.secure_url,
     },
   };
-
   const latest_Associate = await AssociateModel.findByIdAndUpdate(
     req.params.id,
     new_Avatar,
@@ -150,7 +159,6 @@ const updateAssociate = catchAsyncErrors(async (req, res, next) => {
       useFindAndModify: false,
     }
   );
-
   res.status(200).json({
     success: true,
     message: "document updated  successfully.",
@@ -170,13 +178,17 @@ const deleteAssociate = catchAsyncErrors(async (req, res, next) => {
   const myCloud = await cloudinary.v2.uploader.destroy(public_id);
 
   if (myCloud.result === "ok") {
-    await Associate.remove();
+    try {
+      await AssociateModel.findByIdAndDelete( req.params.id );
+    } catch (error) {
+      return next(new ErrorHandler(`Failed to delete associate from the database`, 500));
+    }
   }
-
   res.status(200).json({
     success: true,
     message: "associate Delete Successfully",
   });
 });
+
 
 export {createAssociate,getAssociate,updateAssociate,deleteAssociate};

@@ -1,17 +1,22 @@
 import mongoose from "mongoose";
+import validator from "validator";
 import { getIndianStates } from "../Utils/apifeatures.js";
 
 const { Schema } = mongoose;
 
 const AssociateSchema = new Schema({
     Associate_Name: {
-        type: String,
-        required: true
-    },
+            type: String,
+            required: [true, "Please Enter associate Name"],
+            maxLength: [30, "Name cannot exceed 30 characters"],
+            minLength: [4, "Name should have more than 4 characters"],
+          },
+    
     Associate_Id: {
         type: String,
-        required: true,
-        unique: true
+        required: [true, "Please Enter Associate Id"],
+        maxLength: [30, "Name cannot exceed 30 characters"],
+        minLength: [4, "Name should have more than 4 characters"],
     },
     Associate_Avatar:{
         public_id: {
@@ -25,44 +30,60 @@ const AssociateSchema = new Schema({
     },
     Father_Name: {
         type: String,
-        required: true
+        required: [true, "Please Enter Associate Father Name"],
+        maxLength: [30, "Name cannot exceed 30 characters"],
+        minLength: [4, "Name should have more than 4 characters"],
     },
     Mother_Name: {
         type: String,
-        required: true
+        required: [true, "Please Enter Associate Mother Name"],
+        maxLength: [30, "Name cannot exceed 30 characters"],
+        minLength: [4, "Name should have more than 4 characters"],
     },
     Date_Of_Birth: {
-        type: String,
+        type: Date,
         required: true
-    },
+    }, 
     Phone_Number: {
         type: Number,
-        required: true,
+        required:  [true, "Please Enter your phone no"],
+        maxLength: [10, "Name cannot exceed 30 characters"],
+        minLength: [10, "Name should have more than 4 characters"],
     },
     Email_Id: {
         type: String,
-        required: true,
-        unique:true,
+        required: [true, "Please Enter Your Email"],
+        unique: true,
+        validate: [validator.isEmail, "Please Enter a valid Email"],
     },
     Password: {
-        type: String,
-        required: true,
-        validate: {
-            validator: function(v) {
-                return v.length >= 6; // Minimum password length of 6 characters
+        
+            type: String,
+            required: [true, "Please Enter Your Password"],
+            validate: {
+                validator: function(value) {
+                    // Password should be at least 8 characters long
+                    // It should contain at least one special character and one capital alphabet letter
+                    const regex = /^(?=.*[!@#$%^&*])(?=.*[A-Z]).{8,}$/;
+                    return regex.test(value);
+                },
+                message: 'Password should be greater than 8 characters and contain at least one special character and one capital letter'
             },
-            message: props => `Password must be at least 6 characters long.`
-        }
-    },
+            select: false,
+        },
     Confirm_Password: {
-        type: String,
-        required: true,
-        validate: {
-            validator: function(v) {
-                return v.length >= 6; // Minimum password length of 6 characters
+            type: String,
+            required: [true, "Please Enter Your Confirm_Password"],
+            validate: {
+                validator: function(value) {
+                    // Password should be at least 8 characters long
+                    // It should contain at least one special character and one capital alphabet letter
+                    const regex = /^(?=.*[!@#$%^&*])(?=.*[A-Z]).{8,}$/;
+                    return regex.test(value);
+                },
+                message: 'Password should be greater than 8 characters and contain at least one special character and one capital letter'
             },
-            message: props => `Password must be at least 6 characters long.`
-        }
+            select: false,
     },
     Select_State: {
         type: String,
