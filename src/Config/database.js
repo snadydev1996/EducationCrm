@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { DB_NAME } from "../constant.js";
 import dotenv from "dotenv";
 
 // dotenv.config();
@@ -7,16 +8,14 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
   }
 
 const connectDatabase = () => {
-  const dbURI =process.env.DB_URI;
+  const dbURI =process.env.MONGO_URI;
   if (!dbURI) {
     console.error("MongoDB URI is not provided in environment variables.");
     return;
   }
 
   mongoose
-    .connect(dbURI, {
-        
-    })
+    .connect(`${dbURI}/${DB_NAME}`)
     .then(() => {
       console.log(`Mongodb connected with server: ${mongoose.connection.host}`);
     })
