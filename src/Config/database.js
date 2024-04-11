@@ -13,7 +13,6 @@ const connectDatabase = () => {
     console.error("MongoDB URI is not provided in environment variables.");
     return;
   }
-
   mongoose
     .connect(`${dbURI}/${DB_NAME}`)
     .then(() => {

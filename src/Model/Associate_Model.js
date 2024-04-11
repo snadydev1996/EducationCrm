@@ -2,15 +2,13 @@ import mongoose from "mongoose";
 import validator from "validator";
 import { getIndianStates } from "../Utils/apifeatures.js";
 
-const { Schema } = mongoose;
-const AssociateSchema = new Schema({
+const AssociateSchema = new mongoose.Schema({
     Associate_Name: {
             type: String,
             required: [true, "Please Enter associate Name"],
             maxLength: [30, "Name cannot exceed 30 characters"],
             minLength: [4, "Name should have more than 4 characters"],
-          },
-    
+          },   
     Associate_Id: {
         type: String,
         unique:true,
@@ -57,7 +55,6 @@ const AssociateSchema = new Schema({
         validate: [validator.isEmail, "Please Enter a valid Email"],
     },
     Password: {
-        
             type: String,
             required: [true, "Please Enter Your Password"],
             validate: {
@@ -85,6 +82,12 @@ const AssociateSchema = new Schema({
             },
             select: false,
     },
+    Status:{
+        type:Boolean,
+        required:true,
+        default:"true"
+    },
+    Address:{
     Select_State: {
         type: String,
         enum: getIndianStates(),
@@ -94,12 +97,6 @@ const AssociateSchema = new Schema({
         type: String,
         required: true,
     },
-    Status:{
-        type:Boolean,
-        required:true,
-        default:"true"
-    },
-    Address:{
        street: {
         type:Number,
         required:false
