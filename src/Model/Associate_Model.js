@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 import validator from "validator";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { getIndianStates } from "../Utils/apifeatures.js";
 
 const AssociateSchema = new mongoose.Schema({
@@ -138,9 +141,67 @@ const AssociateSchema = new mongoose.Schema({
             type:String,
             required:true
         }
-    }
-}, { timestamps: true });
+    },
+    // role: {
+    //     type: String,
+    //     enum: ["associate", "admin","student"],
+    //     default: "associate",
+    //   },
+    //   accessType: {
+    //     type: String,
+    //     enum: ["associate", "admin","student"],
+    //     default: "",
+    //   },
+    //   permissions: {
+    //     type: [String],
+    //     enum: [
+    //       "addassociate",
+    //       "addstudent",     
+    //     ],
+    //     default:[""],
+    //   },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+ resetPasswordToken: String,
+  resetPasswordExpire: Date,
+});
 
+AssociateSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) {
+      next();
+    }
+  
+    this.password = await bcrypt.hash(this.password, 10);
+  });
+
+  // JWT TOKEN
+  AssociateSchema.methods.getJWTToken = function () {
+    return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRE,
+    });
+  };
+// compared password
+AssociateSchema.methods.comparePassword = async function (Password) {
+    return await bcrypt.compare(Password, this.Password);
+  };
+
+  // Generating Password Reset Token
+  AssociateSchema.methods.getResetPasswordToken = function () {
+    // Generating Token
+    const resetToken = crypto.randomBytes(20).toString("hex");
+  
+    // Hashing and adding resetPasswordToken to userSchema
+    this.resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+  
+    this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+  
+    return resetToken;
+  }
 const AssociateModel = mongoose.model("Associate", AssociateSchema);
 
 export  {AssociateModel};

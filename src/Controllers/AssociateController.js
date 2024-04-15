@@ -4,6 +4,8 @@ import catchAsyncErrors from "../Middleware/catchAsyncErrors.js";
 import { ErrorHandler } from "../Utils/errorhandler.js";
 import { deleteFileFromCloudinary } from "../Utils/apifeatures.js";
 import { pagination } from "../Utils/apifeatures.js";
+import {Token} from "../Utils/userToken.js"
+
 
 //  Associate create logic start here
 const createAssociate = catchAsyncErrors(async (req, res, next) => {
@@ -50,6 +52,9 @@ const createAssociate = catchAsyncErrors(async (req, res, next) => {
       Select_City,
       Address,
       Bank_details,
+      permissions,
+      accessType,
+      role,
       Status,
     } = req.body;
 
@@ -67,17 +72,17 @@ const createAssociate = catchAsyncErrors(async (req, res, next) => {
       Select_City,
       Address,
       Bank_details,
+      permissions,
+      accessType,
+      role,
       Status,
       Associate_Avatar: {
         public_id: myCloud.public_id,
         url: myCloud.secure_url,
       },
     });
-
-    res.status(201).json({
-      success: true,
-      message: "Associate created successfully.",
-    });
+    Token(associate, 201, "associate created successfully", res);
+  
   } catch (error) {
     // Handle error
     next(new ErrorHandler(`associate not created sucessfully ${error},500`));
@@ -86,7 +91,37 @@ const createAssociate = catchAsyncErrors(async (req, res, next) => {
       await deleteFileFromCloudinary(public_id);
     }
   }
+  
 });
+
+// Login User
+const loginAssociate = catchAsyncErrors(async (req, res, next) => {
+  const { Email_Id, Password,Associate_Id, } = req.body;
+
+  if (!(Associate_Id || Email_Id) && !Password) {
+    return next(new ErrorHandler("Please enter username and password", 400));
+  }
+
+  const Associate = await AssociateModel.findOne({ $or: [{ Email_Id }, { Associate_Id }] }).select(
+    "+Password"
+  );
+  if (!Associate) {
+    return next(
+      new ErrorHandler(`Invalid ${Object.keys(req.body)[0]} or  password`, 401)
+    );
+  }
+
+  const isPasswordMatched =  Associate.comparePassword(Password);
+
+  if (!isPasswordMatched) {
+    return next(
+      new ErrorHandler(`Invalid ${Object.keys(req.body)[0]} or password`, 401)
+    );
+  }
+
+  Token(Associate, 201, "Login successfully", res);
+});
+
 const getAssociate = catchAsyncErrors(async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -210,4 +245,4 @@ const deleteAssociate = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-export { createAssociate, getAssociate, updateAssociate, deleteAssociate };
+export { createAssociate, getAssociate, updateAssociate, deleteAssociate ,loginAssociate};

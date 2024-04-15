@@ -2,6 +2,8 @@
 import express from 'express';
 import dotenv from 'dotenv'
 import fileUpload from "express-fileupload";
+import cookieParser from "cookie-parser";
+import bodyParser from "body-parser";
 import associate from './Routes/AssociateRoute.js';
 
 
@@ -14,6 +16,9 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 app.use(
   fileUpload({
     useTempFiles: true,
