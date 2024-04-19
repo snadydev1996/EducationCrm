@@ -1,12 +1,16 @@
 import cloudinary from "cloudinary"
 export const getIndianStates = () => {
     return [
-    "Bihar"
+    "Bihar",
+    "Jharkhand"
       ];
 };
 
-export const getIndianCities = (stateName) => {
+export const getDistrict = (stateName) => {
+  return [
+    "East-champaran",
 
+      ];
 };
 export const deleteFileFromCloudinary = async (public_id) => {
   try {
@@ -18,6 +22,34 @@ export const deleteFileFromCloudinary = async (public_id) => {
     throw new Error("File deleting failed. Please try again.");
   }
 };
+
+export const uploadDocumentOnCloudnary = async (file,folder) => {
+  try {
+    const myCloud = await cloudinary.v2.uploader.upload(file.tempFilePath, {
+      folder: `${folder}`,
+      resource_type: "auto",
+    });
+    return myCloud
+    
+  } catch (error) {
+    throw new Error("File uploading failed. Please try again.");
+  }
+};
+
+export const updateToCloudinary = async (file, publicId, options = {}) => {
+  try {
+    const result = await cloudinary.v2.uploader.upload(file.tempFilePath, {
+      public_id: publicId,
+      ...options,
+    });
+    console.log(`Uploaded file ${file.originalname} to Cloudinary with public ID ${result.public_id}`);
+    return result;
+  } catch (error) {
+    console.error(`Error uploading file to Cloudinary: ${error}`);
+    throw error;
+  }
+};
+
 
 function searchList(searchQuery, result) {
   const searchItems = result.filter((item) => {
